@@ -13,6 +13,7 @@ import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.PasswordsDoNotMatchesException;
 import greencity.exception.exceptions.UserAlreadyHasPasswordException;
 import greencity.exception.exceptions.UserAlreadyRegisteredException;
+import greencity.exception.exceptions.UserNotFoundException;
 import greencity.exception.exceptions.WrongEmailException;
 import greencity.exception.exceptions.WrongIdException;
 import greencity.exception.exceptions.WrongPasswordException;
@@ -383,5 +384,22 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(exceptionResponse);
+    }
+
+    /**
+     * Method intercept exception {@link UserNotFoundException}.
+     *
+     * @param ex      Exception which should be intercepted.
+     * @param request contain detail about occur exception
+     * @return ResponseEntity which contains http status and body with message of
+     *         exception.
+     */
+    @ExceptionHandler(UserNotFoundException.class)
+    public final ResponseEntity<Object> handleUserNotFoundException(UserNotFoundException ex,
+                                                                    WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        exceptionResponse.setMessage(ex.getMessage());
+        log.trace(ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exceptionResponse);
     }
 }
