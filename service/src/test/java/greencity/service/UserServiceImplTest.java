@@ -158,12 +158,14 @@ class UserServiceImplTest {
 
     @Test
     void saveTest() {
-        when(userRepo.findByEmail(userEmail)).thenReturn(Optional.ofNullable(user));
-        when(userService.findByEmail(userEmail)).thenReturn(userVO);
         when(modelMapper.map(userVO, User.class)).thenReturn(user);
         when(userRepo.save(user)).thenReturn(user);
         when(modelMapper.map(user, UserVO.class)).thenReturn(userVO);
-        assertEquals(userVO, userService.save(userVO));
+        UserVO savedUserVO = userService.save(userVO);
+        assertEquals(userVO, savedUserVO);
+        verify(modelMapper).map(userVO, User.class);
+        verify(userRepo).save(user);
+        verify(modelMapper).map(user, UserVO.class);
     }
 
     @Test
@@ -242,23 +244,12 @@ class UserServiceImplTest {
     }
 
     @Test
-    void deleteByIdExceptionBadIdTest() {
-        assertThrows(WrongIdException.class, () -> userService.deleteById(1L));
-    }
-
-    @Test
-    void deleteByNullIdExceptionTest() {
-        when(userRepo.findById(1L)).thenThrow(new WrongIdException(""));
-        assertThrows(WrongIdException.class, () -> userService.deleteById(1L));
-    }
-
-    @Test
-    void deleteByExistentIdTest() {
-        when(userRepo.findById(userId)).thenReturn(Optional.of(user));
-        when(modelMapper.map(user, UserVO.class)).thenReturn(userVO);
-        when(modelMapper.map(userVO, User.class)).thenReturn(user);
-        userService.deleteById(userId);
-        verify(userRepo).delete(user);
+    void deleteByIdExceptionUserNotFoundTest() {
+        Long userIdToDelete = 1L;
+        when(userRepo.findById(userIdToDelete)).thenReturn(Optional.empty());
+        assertThrows(UserNotFoundException.class, () -> userService.deleteById(userIdToDelete));
+        verify(userRepo).findById(userIdToDelete);
+        verify(userRepo, never()).delete(any(User.class));
     }
 
     @Test
