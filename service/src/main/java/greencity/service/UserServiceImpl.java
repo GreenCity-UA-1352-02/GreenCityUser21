@@ -163,7 +163,7 @@ public class UserServiceImpl implements UserService {
     public UserVO findByEmail(String email) {
         Optional<User> optionalUser = userRepo.findByEmail(email);
         return optionalUser.map(user -> modelMapper.map(user, UserVO.class))
-                .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
+            .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
     }
 
     /**
