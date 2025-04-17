@@ -316,6 +316,7 @@ public class UserServiceImpl implements UserService {
         UserVO userVO = findById(id);
         userVO.setUserStatus(userStatus);
         User map = modelMapper.map(userVO, User.class);
+        map.setLanguage(languageRepo.findById(userVO.getLanguageVO().getId()).orElseThrow(() -> new NotFoundException(ErrorMessage.LANGUAGE_NOT_FOUND_BY_ID)));
         return modelMapper.map(userRepo.save(map), UserStatusDto.class);
     }
 
