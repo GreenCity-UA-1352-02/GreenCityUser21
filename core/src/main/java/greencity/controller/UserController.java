@@ -30,6 +30,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -209,7 +210,15 @@ public class UserController {
         @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN)
     })
     @GetMapping
-    public ResponseEntity<UserUpdateDto> getUserByPrincipal(@ApiIgnore @AuthenticationPrincipal Principal principal) {
+    public ResponseEntity<UserUpdateDto> getUserByPrincipal(@ApiIgnore Principal principal) {
+        if (principal instanceof Authentication authentication) {
+            boolean isUser = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_USER"));
+
+            if (isUser) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+        }
         String email = principal.getName();
         return ResponseEntity.status(HttpStatus.OK).body(userService.getUserUpdateDtoByEmail(email));
     }
@@ -230,7 +239,7 @@ public class UserController {
     })
     @PatchMapping
     public ResponseEntity<UserUpdateDto> updateUser(@Valid @RequestBody UserUpdateDto dto,
-        @ApiIgnore @AuthenticationPrincipal Principal principal) {
+                                                    @ApiIgnore @AuthenticationPrincipal Principal principal) {
         String email = principal.getName();
         return ResponseEntity.status(HttpStatus.OK).body(userService.update(dto, email));
     }
@@ -292,7 +301,7 @@ public class UserController {
     public ResponseEntity<HttpStatus> updateUserProfilePicture(
         @Parameter(description = "pass image as base64") @RequestPart(required = false) String base64,
         @Parameter(description = "Profile picture") @ImageValidation @RequestPart(required = false) MultipartFile image,
-        @ApiIgnore @AuthenticationPrincipal Principal principal) {
+        @ApiIgnore Principal principal) {
         String email = principal.getName();
         userService.updateUserProfilePicture(image, email, base64);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -559,7 +568,7 @@ public class UserController {
     @PutMapping("/updateUserLastActivityTime/{date}")
     public ResponseEntity<Object> updateUserLastActivityTime(@ApiIgnore @CurrentUser UserVO userVO,
         @PathVariable(value = "date") @DateTimeFormat(
-            pattern = "yyyy-MM-dd.HH:mm:ss.SSSSSS") LocalDateTime userLastActivityTime) {
+        pattern = "yyyy-MM-dd.HH:mm:ss.SSSSSS") LocalDateTime userLastActivityTime) {
         userService.updateUserLastActivityTime(userVO.getId(), userLastActivityTime);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -581,7 +590,7 @@ public class UserController {
     })
     @PutMapping("/deactivate")
     public ResponseEntity<ResponseEntity.BodyBuilder> deactivateUser(@RequestParam Long id,
-        @RequestBody List<String> userReasons) {
+                                                                     @RequestBody List<String> userReasons) {
         UserDeactivationReasonDto userDeactivationDto = userService.deactivateUser(id, userReasons);
         emailService.sendReasonOfDeactivation(userDeactivationDto);
         return ResponseEntity.status(HttpStatus.OK).build();
@@ -612,8 +621,7 @@ public class UserController {
      *
      * @param id        {@link Long} - user's id.
      * @param adminLang {@link String} - current administrator language.
-     * @return {@link List} of {@link String} - reasons for deactivation of the
-     *         current user.
+     * @return {@link List} of {@link String} - reasons for deactivation of the current user.
      * @author Vlad Pikhotskyi
      */
     @Operation(summary = "Get list reasons of deactivating the user")
@@ -644,7 +652,7 @@ public class UserController {
     })
     @PutMapping("/language/{languageId}")
     public ResponseEntity<Object> setUserLanguage(@ApiIgnore @CurrentUser UserVO userVO,
-        @PathVariable Long languageId) {
+                                                  @PathVariable Long languageId) {
         userService.updateUserLanguage(userVO.getId(), languageId);
         return ResponseEntity.ok().build();
     }
@@ -713,6 +721,7 @@ public class UserController {
      * @param pageable    {@link Pageable}
      * @param userViewDto {@link UserManagementViewDto} - stores values.
      */
+    @SuppressWarnings("checkstyle:LineLength")
     @Operation(summary = "Search Users")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
@@ -776,3 +785,5 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findAllUsersCities());
     }
 }
+
+
