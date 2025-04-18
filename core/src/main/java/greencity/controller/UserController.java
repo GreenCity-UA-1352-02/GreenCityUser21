@@ -1,4 +1,3 @@
-
 package greencity.controller;
 
 import greencity.annotations.ApiPageable;
@@ -373,6 +372,7 @@ public class UserController {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
         @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
         @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN)
     })
     @GetMapping("isOnline/{userId}/")
     public ResponseEntity<Boolean> checkIfTheUserIsOnline(
@@ -458,12 +458,14 @@ public class UserController {
     }
 
     /**
-     * Method that allow you to find {@link UserVO} by Id.
+     * Method that allows searching {@link UserManagementDto} for management by criteria in query.
      *
-     * @return {@link UserUpdateDto}.
+     * @param query    Query string to search by (nullable).
+     * @param pageable {@link Pageable} object for pagination.
+     * @return {@link PageableAdvancedDto} of {@link UserManagementDto}.
      * @author Orest Mamchuk
      */
-    @Operation(summary = "Get User by id")
+    @Operation(summary = "Search users by criteria")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
         @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
@@ -535,7 +537,7 @@ public class UserController {
      * @return {@link Long}.
      * @author Orest Mamchuk
      */
-    @Operation(summary = "Get User by id")
+    @Operation(summary = "Get User id by email")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
         @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),

@@ -14,7 +14,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -38,7 +38,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
  */
 @Configuration
 @EnableWebSecurity
-@EnableGlobalAuthentication
+@EnableMethodSecurity
 public class SecurityConfig {
     private final JwtTool jwtTool;
     private final UserService userService;
@@ -179,7 +179,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,
                     "/user/get-all-authorities",
                     "/user/get-positions-authorities",
-                    "/user/get-employee-login-positions")
+                    "/user/get-employee-login-positions",
+                    "/user/isOnline/{userId}/")
                 .hasAnyRole(ADMIN, UBS_EMPLOYEE, MODERATOR, EMPLOYEE)
                 .requestMatchers(HttpMethod.PATCH,
                     "/user/shopping-list-items/{userShoppingListItemId}",
@@ -210,12 +211,12 @@ public class SecurityConfig {
                     "/user/update/role")
                 .hasAnyRole(ADMIN)
                 .requestMatchers(HttpMethod.POST, "/management/login")
-                // .not().fullyAuthenticated()
                 .rememberMe()
                 .requestMatchers(HttpMethod.GET, "/management/login")
                 .permitAll()
                 .requestMatchers("/css/**", "/img/**")
                 .permitAll()
+                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/user/user-rating")
                 .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE, UBS_EMPLOYEE, USER)
                 .anyRequest().hasAnyRole(ADMIN));
