@@ -1,6 +1,7 @@
 package greencity.dto.econews;
 
 import greencity.dto.user.PlaceAuthorDto;
+import jakarta.validation.Valid;
 import java.time.ZonedDateTime;
 import lombok.*;
 
@@ -20,6 +21,7 @@ public class EcoNewsForSendEmailDto {
 
     private String source;
 
+    @Valid
     private PlaceAuthorDto author;
 
     private String title;

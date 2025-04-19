@@ -1,5 +1,6 @@
 package greencity.dto.user;
 
+import jakarta.validation.constraints.Email;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,5 +18,6 @@ import lombok.Setter;
 public class PlaceAuthorDto implements Serializable {
     private Long id;
     private String name;
+    @Email
     private String email;
 }

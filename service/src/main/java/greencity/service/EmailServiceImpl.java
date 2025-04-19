@@ -14,6 +14,7 @@ import greencity.dto.user.UserActivationDto;
 import greencity.dto.user.UserDeactivationReasonDto;
 import greencity.dto.violation.UserViolationMailDto;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.WrongIdException;
 import greencity.repository.UserRepo;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -56,13 +57,13 @@ public class EmailServiceImpl implements EmailService {
      */
     @Autowired
     public EmailServiceImpl(JavaMailSender javaMailSender,
-        ITemplateEngine templateEngine,
-        UserRepo userRepo,
-        @Qualifier("sendEmailExecutor") Executor executor,
-        @Value("${client.address}") String clientLink,
-        @Value("${econews.address}") String ecoNewsLink,
-        @Value("${address}") String serverLink,
-        @Value("${sender.email.address}") String senderEmailAddress) {
+                            ITemplateEngine templateEngine,
+                            UserRepo userRepo,
+                            @Qualifier("sendEmailExecutor") Executor executor,
+                            @Value("${client.address}") String clientLink,
+                            @Value("${econews.address}") String ecoNewsLink,
+                            @Value("${address}") String serverLink,
+                            @Value("${sender.email.address}") String senderEmailAddress) {
         this.javaMailSender = javaMailSender;
         this.templateEngine = templateEngine;
         this.userRepo = userRepo;
@@ -75,7 +76,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendChangePlaceStatusEmail(String authorName, String placeName,
-        String placeStatus, String authorEmail) {
+                                           String placeStatus, String authorEmail) {
         log.info(LogMessage.IN_SEND_CHANGE_PLACE_STATUS_EMAIL, placeName);
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.CLIENT_LINK, clientLink);
@@ -89,8 +90,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendAddedNewPlacesReportEmail(List<PlaceAuthorDto> subscribers,
-        Map<CategoryDto, List<PlaceNotificationDto>> categoriesWithPlaces,
-        String notification) {
+                                              Map<CategoryDto, List<PlaceNotificationDto>> categoriesWithPlaces,
+                                              String notification) {
         log.info(LogMessage.IN_SEND_ADDED_NEW_PLACES_REPORT_EMAIL, null, null, notification);
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.CLIENT_LINK, clientLink);
@@ -106,7 +107,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendNewNewsForSubscriber(List<NewsSubscriberResponseDto> subscribers,
-        AddEcoNewsDtoResponse newsDto) {
+                                         AddEcoNewsDtoResponse newsDto) {
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.ECO_NEWS_LINK, ecoNewsLink);
         model.put(EmailConstants.NEWS_RESULT, newsDto);
@@ -128,6 +129,9 @@ public class EmailServiceImpl implements EmailService {
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.ECO_NEWS_LINK, ecoNewsLink);
         model.put(EmailConstants.NEWS_RESULT, newDto);
+        if (!userRepo.findById(newDto.getAuthor().getId()).isPresent()) {
+            throw new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID);
+        }
         try {
             model.put(EmailConstants.UNSUBSCRIBE_LINK, serverLink + "/newSubscriber/unsubscribe?email="
                 + URLEncoder.encode(newDto.getAuthor().getEmail(), StandardCharsets.UTF_8.toString())
@@ -146,7 +150,7 @@ public class EmailServiceImpl implements EmailService {
      */
     @Override
     public void sendVerificationEmail(Long id, String name, String email, String token, String language,
-        boolean isUbs) {
+                                      boolean isUbs) {
         Map<String, Object> model = new HashMap<>();
         String baseLink = clientLink + "#/" + (isUbs ? "ubs" : "");
         model.put(EmailConstants.CLIENT_LINK, baseLink);
@@ -184,7 +188,7 @@ public class EmailServiceImpl implements EmailService {
      */
     @Override
     public void sendRestoreEmail(Long userId, String userName, String userEmail, String token, String language,
-        boolean isUbs) {
+                                 boolean isUbs) {
         Map<String, Object> model = new HashMap<>();
         String baseLink = clientLink + "/#" + (isUbs ? "/ubs" : "");
         model.put(EmailConstants.CLIENT_LINK, baseLink);
@@ -229,6 +233,9 @@ public class EmailServiceImpl implements EmailService {
 
     private void sendEmail(String receiverEmail, String subject, String content) {
         log.info(LogMessage.IN_SEND_EMAIL, receiverEmail, subject);
+        if (!userRepo.findByEmail(receiverEmail).isPresent()) {
+            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + receiverEmail);
+        }
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
         try {
