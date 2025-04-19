@@ -179,7 +179,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public PageableAdvancedDto<UserManagementVO> search(Pageable pageable,
-        UserManagementViewDto userManagementViewDto) {
+                                                        UserManagementViewDto userManagementViewDto) {
         Page<User> found = userRepo.findAll(buildSpecification(userManagementViewDto), pageable);
         return buildPageableAdvanceDtoFromPage(found);
     }
@@ -316,7 +316,12 @@ public class UserServiceImpl implements UserService {
         UserVO userVO = findById(id);
         userVO.setUserStatus(userStatus);
         User map = modelMapper.map(userVO, User.class);
-        map.setLanguage(languageRepo.findById(userVO.getLanguageVO().getId()).orElseThrow(() -> new NotFoundException(ErrorMessage.LANGUAGE_NOT_FOUND_BY_ID)));
+        User optionalUser = userRepo.findById(userVO.getId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID));
+        map.setLanguage(languageRepo.findById(userVO.getLanguageVO().getId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.LANGUAGE_NOT_FOUND_BY_ID)));
+        map.setFirstName(optionalUser.getFirstName());
+        map.setUuid(optionalUser.getUuid());
         return modelMapper.map(userRepo.save(map), UserStatusDto.class);
     }
 
@@ -474,7 +479,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserVO updateUserProfilePicture(MultipartFile image, String email,
-        String base64) {
+                                           String base64) {
         User user = userRepo
             .findByEmail(email)
             .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
