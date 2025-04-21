@@ -106,10 +106,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger.json",
                                 "/swagger-ui.html",
-                                "/error",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/swagger-ui/**")
+                                "/error")
                         .permitAll()
                         .requestMatchers(
                                 "/swagger-resources/**",

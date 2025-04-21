@@ -8,9 +8,9 @@ concurrency: Testing
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
-    branches: [ master, dev ] # non-existing branches to prevent trigger
+    branches: [ master1, dev1 ] # non-existing branches to prevent trigger
   pull_request:
-    branches: [ master, dev ] # non-existing branches to prevent trigger
+    branches: [ master1, dev1 ] # non-existing branches to prevent trigger
 
 env:
   repository: user
