@@ -507,7 +507,7 @@ class UserServiceImplTest {
 
     @Test
     void checkIfTheUserIsOnlineExceptionTest() {
-        assertThrows(WrongIdException.class, () -> userService.checkIfTheUserIsOnline(null));
+        assertThrows(UserNotFoundException.class, () -> userService.checkIfTheUserIsOnline(null));
     }
 
     @Test

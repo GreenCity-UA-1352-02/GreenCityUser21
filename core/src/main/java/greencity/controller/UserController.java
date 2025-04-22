@@ -458,7 +458,8 @@ public class UserController {
     }
 
     /**
-     * Method that allows searching {@link UserManagementDto} for management by criteria in query.
+     * Method that allows searching {@link UserManagementDto} for management by
+     * criteria in query.
      *
      * @param query    Query string to search by (nullable).
      * @param pageable {@link Pageable} object for pagination.

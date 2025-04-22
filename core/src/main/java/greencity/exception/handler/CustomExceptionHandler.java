@@ -406,7 +406,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(PropertyReferenceException.class)
     public final ResponseEntity<Object> handlePropertyReferenceException(
-            PropertyReferenceException ex, WebRequest request) {
+        PropertyReferenceException ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
         exceptionResponse.setMessage("Invalid property: " + ex.getMessage());
         log.trace(ex.getMessage(), ex);
