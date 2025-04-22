@@ -53,7 +53,7 @@ class EmailControllerTest {
                 "\"creationDate\":\"2021-02-05T15:10:22.434Z\"," +
                 "\"imagePath\":\"string\"," +
                 "\"source\":\"string\"," +
-                "\"author\":{\"id\":0,\"name\":\"string\",\"email\":\"test.email@gmail.com\" }," +
+                "\"author\":{\"id\":1,\"name\":\"String\",\"email\":\"test.email@gmail.com\" }," +
                 "\"title\":\"string\"," +
                 "\"text\":\"string\"}";
 
@@ -148,7 +148,7 @@ class EmailControllerTest {
     void sendHabitNotification() throws Exception {
         String content = "{" +
             "\"email\":\"test@gmail.com\"," +
-            "\"name\":\"string\"" +
+            "\"name\":\"String\"" +
             "}";
 
         mockPerform(content, "/sendHabitNotification");

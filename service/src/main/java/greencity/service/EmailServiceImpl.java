@@ -129,9 +129,8 @@ public class EmailServiceImpl implements EmailService {
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.ECO_NEWS_LINK, ecoNewsLink);
         model.put(EmailConstants.NEWS_RESULT, newDto);
-        if (!userRepo.findById(newDto.getAuthor().getId()).isPresent()) {
-            throw new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID);
-        }
+        userRepo.findById(newDto.getAuthor().getId())
+            .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID));
         try {
             model.put(EmailConstants.UNSUBSCRIBE_LINK, serverLink + "/newSubscriber/unsubscribe?email="
                 + URLEncoder.encode(newDto.getAuthor().getEmail(), StandardCharsets.UTF_8.toString())
@@ -233,9 +232,8 @@ public class EmailServiceImpl implements EmailService {
 
     private void sendEmail(String receiverEmail, String subject, String content) {
         log.info(LogMessage.IN_SEND_EMAIL, receiverEmail, subject);
-        if (!userRepo.findByEmail(receiverEmail).isPresent()) {
-            throw new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + receiverEmail);
-        }
+        userRepo.findByEmail(receiverEmail)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + receiverEmail));
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
         try {
