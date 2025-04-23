@@ -100,6 +100,7 @@ public class SecurityConfig {
                         .requestMatchers("/static/css/**", "/static/img/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
+                                "/error/**",
                                 "/v2/api-docs/**",
                                 "/v3/api-docs/**",
                                 "/swagger.json",
@@ -116,7 +117,7 @@ public class SecurityConfig {
                                 "/ownSecurity/restorePassword",
                                 "/googleSecurity",
                                 "/facebookSecurity/generateFacebookAuthorizeURL",
-                                "/facebookSecurity/facebook", "/user/emailNotifications",
+                                "/facebookSecurity/facebook",
                                 "/user/activatedUsersAmount",
                                 "/user/{userId}/habit/assign",
                                 "/token",
@@ -134,7 +135,6 @@ public class SecurityConfig {
                                 "/user/shopping-list-items/habits/{habitId}/shopping-list",
                                 "/user/{userId}/{habitId}/custom-shopping-list-items/available",
                                 "/user/{userId}/profile/", "/user/isOnline/{userId}/",
-                                "/user/{userId}/profileStatistics/",
                                 "/user/userAndSixFriendsWithOnlineStatus",
                                 "/user/userAndAllFriendsWithOnlineStatus",
                                 "/user/findByIdForAchievement",
@@ -195,6 +195,7 @@ public class SecurityConfig {
                                 "/user/roles",
                                 "/user/findUserForManagement",
                                 "/user/searchBy",
+                                "/user/emailNotifications",
                                 "/user/findAll")
                         .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE)
                         .requestMatchers(HttpMethod.POST,
@@ -209,7 +210,11 @@ public class SecurityConfig {
                                 "/user/role",
                                 "/user/update/role")
                         .hasAnyRole(ADMIN)
-                        .requestMatchers(HttpMethod.POST, "/management/login")
+                        .requestMatchers(HttpMethod.GET,"/user/{userId}/profileStatistics/")
+                        .hasAnyRole(ADMIN)
+                        .requestMatchers(HttpMethod.POST,
+                                "/management/login",
+                                "/user/{id}")
                         // .not().fullyAuthenticated()
                         .rememberMe()
                         .requestMatchers(HttpMethod.GET, "/management/login")
