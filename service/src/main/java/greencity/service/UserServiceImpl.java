@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO findById(Long id) {
         User user = userRepo.findById(id)
-            .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
+            .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
         return modelMapper.map(user, UserVO.class);
     }
 
@@ -162,7 +162,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO findByEmail(String email) {
         Optional<User> optionalUser = userRepo.findByEmail(email);
-        return optionalUser.isEmpty() ? null : modelMapper.map(optionalUser.get(), UserVO.class);
+        return optionalUser.map(user -> modelMapper.map(user, UserVO.class))
+            .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
     }
 
     /**
@@ -568,7 +569,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean checkIfTheUserIsOnline(Long userId) {
         if (userRepo.findById(userId).isEmpty()) {
-            throw new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId);
+            throw new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId);
         }
         Optional<Timestamp> lastActivityTime = userRepo.findLastActivityTimeById(userId);
         if (lastActivityTime.isPresent()) {
