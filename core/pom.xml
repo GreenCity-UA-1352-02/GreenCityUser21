@@ -28,6 +28,12 @@
         </dependency>
         <dependency>
             <groupId>greencity</groupId>
+            <artifactId>service</artifactId>
+            <version>${project.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>greencity</groupId>
             <artifactId>dao</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
