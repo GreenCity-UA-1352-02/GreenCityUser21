@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-
 class EmailServiceImplTest {
     private EmailService service;
     private PlaceAuthorDto placeAuthorDto;
