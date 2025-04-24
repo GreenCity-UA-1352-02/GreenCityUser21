@@ -15,12 +15,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -39,7 +39,6 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 @EnableGlobalAuthentication
 public class SecurityConfig {
     private final JwtTool jwtTool;
@@ -94,12 +93,13 @@ public class SecurityConfig {
                 new AccessTokenAuthenticationFilter(jwtTool, authenticationManager(), userService),
                 UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(exception -> exception
-                .authenticationEntryPoint((req, resp, exc) -> resp.sendError(
-                    SC_UNAUTHORIZED, "Authorize first."))
-                .accessDeniedHandler((req, resp, exc) -> resp.sendError(
-                    SC_FORBIDDEN, "You don't have authorities.")))
+                .authenticationEntryPoint(authenticationEntryPoint())
+                .accessDeniedHandler((req, resp, accessDeniedException) -> {
+                    resp.sendError(SC_FORBIDDEN, "You don't have authorities.");
+                }))
             .authorizeHttpRequests(req -> req
                 .requestMatchers("/static/css/**", "/static/img/**").permitAll()
+                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     "/v2/api-docs/**",
@@ -181,8 +181,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,
                     "/user/get-all-authorities",
                     "/user/get-positions-authorities",
-                    "/user/get-employee-login-positions",
-                    "/user/isOnline/{userId}/")
+                    "/user/get-employee-login-positions")
                 .hasAnyRole(ADMIN, UBS_EMPLOYEE, MODERATOR, EMPLOYEE)
                 .requestMatchers(HttpMethod.PATCH,
                     "/user/shopping-list-items/{userShoppingListItemId}",
@@ -213,16 +212,28 @@ public class SecurityConfig {
                     "/user/update/role")
                 .hasAnyRole(ADMIN)
                 .requestMatchers(HttpMethod.POST, "/management/login")
+                // .not().fullyAuthenticated()
                 .rememberMe()
                 .requestMatchers(HttpMethod.GET, "/management/login")
                 .permitAll()
                 .requestMatchers("/css/**", "/img/**")
                 .permitAll()
-                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/user/user-rating")
                 .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE, UBS_EMPLOYEE, USER)
                 .anyRequest().hasAnyRole(ADMIN));
         return http.build();
+    }
+
+    /**
+     * Custom AuthenticationEntryPoint bean.
+     *
+     * @return AuthenticationEntryPoint
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (req, resp, authException) -> {
+            resp.sendError(SC_UNAUTHORIZED, "Authorize first.");
+        };
     }
 
     /**
