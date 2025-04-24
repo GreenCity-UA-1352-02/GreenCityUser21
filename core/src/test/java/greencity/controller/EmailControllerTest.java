@@ -79,8 +79,8 @@ class EmailControllerTest {
                 "\"text\":\"string\"}";
 
         mockMvc.perform(post(LINK + "/addEcoNews")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
             .andExpect(status().isBadRequest());
     }
 
@@ -138,8 +138,8 @@ class EmailControllerTest {
             "}";
 
         mockMvc.perform(post(LINK + "/changePlaceStatus")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
             .andExpect(status().isBadRequest());
 
     }
@@ -167,15 +167,15 @@ class EmailControllerTest {
             "}";
 
         mockMvc.perform(post(LINK + "/sendHabitNotification")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
             .andExpect(status().isBadRequest());
     }
 
     private void mockPerform(String content, String subLink) throws Exception {
         mockMvc.perform(post(LINK + subLink)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
             .andExpect(status().isOk());
     }
 
@@ -204,8 +204,8 @@ class EmailControllerTest {
             "}";
 
         mockMvc.perform(post(LINK + "/sendUserViolation")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
             .andExpect(status().isBadRequest());
     }
 
@@ -219,9 +219,9 @@ class EmailControllerTest {
         String email = "email@mail.com";
 
         mockMvc.perform(post(LINK + "/notification")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(content)
-                .param("email", email))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content)
+            .param("email", email))
             .andExpect(status().isOk());
 
         NotificationDto notification = new ObjectMapper().readValue(content, NotificationDto.class);

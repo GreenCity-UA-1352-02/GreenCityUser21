@@ -57,13 +57,13 @@ public class EmailServiceImpl implements EmailService {
      */
     @Autowired
     public EmailServiceImpl(JavaMailSender javaMailSender,
-                            ITemplateEngine templateEngine,
-                            UserRepo userRepo,
-                            @Qualifier("sendEmailExecutor") Executor executor,
-                            @Value("${client.address}") String clientLink,
-                            @Value("${econews.address}") String ecoNewsLink,
-                            @Value("${address}") String serverLink,
-                            @Value("${sender.email.address}") String senderEmailAddress) {
+        ITemplateEngine templateEngine,
+        UserRepo userRepo,
+        @Qualifier("sendEmailExecutor") Executor executor,
+        @Value("${client.address}") String clientLink,
+        @Value("${econews.address}") String ecoNewsLink,
+        @Value("${address}") String serverLink,
+        @Value("${sender.email.address}") String senderEmailAddress) {
         this.javaMailSender = javaMailSender;
         this.templateEngine = templateEngine;
         this.userRepo = userRepo;
@@ -76,7 +76,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendChangePlaceStatusEmail(String authorName, String placeName,
-                                           String placeStatus, String authorEmail) {
+        String placeStatus, String authorEmail) {
         log.info(LogMessage.IN_SEND_CHANGE_PLACE_STATUS_EMAIL, placeName);
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.CLIENT_LINK, clientLink);
@@ -90,8 +90,8 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendAddedNewPlacesReportEmail(List<PlaceAuthorDto> subscribers,
-                                              Map<CategoryDto, List<PlaceNotificationDto>> categoriesWithPlaces,
-                                              String notification) {
+        Map<CategoryDto, List<PlaceNotificationDto>> categoriesWithPlaces,
+        String notification) {
         log.info(LogMessage.IN_SEND_ADDED_NEW_PLACES_REPORT_EMAIL, null, null, notification);
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.CLIENT_LINK, clientLink);
@@ -107,7 +107,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void sendNewNewsForSubscriber(List<NewsSubscriberResponseDto> subscribers,
-                                         AddEcoNewsDtoResponse newsDto) {
+        AddEcoNewsDtoResponse newsDto) {
         Map<String, Object> model = new HashMap<>();
         model.put(EmailConstants.ECO_NEWS_LINK, ecoNewsLink);
         model.put(EmailConstants.NEWS_RESULT, newsDto);
@@ -149,7 +149,7 @@ public class EmailServiceImpl implements EmailService {
      */
     @Override
     public void sendVerificationEmail(Long id, String name, String email, String token, String language,
-                                      boolean isUbs) {
+        boolean isUbs) {
         Map<String, Object> model = new HashMap<>();
         String baseLink = clientLink + "#/" + (isUbs ? "ubs" : "");
         model.put(EmailConstants.CLIENT_LINK, baseLink);
@@ -187,7 +187,7 @@ public class EmailServiceImpl implements EmailService {
      */
     @Override
     public void sendRestoreEmail(Long userId, String userName, String userEmail, String token, String language,
-                                 boolean isUbs) {
+        boolean isUbs) {
         Map<String, Object> model = new HashMap<>();
         String baseLink = clientLink + "/#" + (isUbs ? "/ubs" : "");
         model.put(EmailConstants.CLIENT_LINK, baseLink);
