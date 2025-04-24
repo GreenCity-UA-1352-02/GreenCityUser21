@@ -15,6 +15,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -39,6 +40,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @EnableGlobalAuthentication
 public class SecurityConfig {
     private final JwtTool jwtTool;
@@ -52,7 +54,7 @@ public class SecurityConfig {
 
     @Autowired
     public SecurityConfig(JwtTool jwtTool, UserService userService,
-                          AuthenticationConfiguration authenticationConfiguration) {
+        AuthenticationConfiguration authenticationConfiguration) {
         this.jwtTool = jwtTool;
         this.userService = userService;
         this.authenticationConfiguration = authenticationConfiguration;
@@ -78,7 +80,7 @@ public class SecurityConfig {
             config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
             config.setAllowedOrigins(Collections.singletonList("http://localhost:4205"));
             config.setAllowedMethods(
-                    Arrays.asList("GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"));
+                Arrays.asList("GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"));
             config.setAllowedHeaders(
                     Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Headers",
                         "X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));
@@ -93,13 +95,12 @@ public class SecurityConfig {
                 new AccessTokenAuthenticationFilter(jwtTool, authenticationManager(), userService),
                 UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(authenticationEntryPoint())
-                .accessDeniedHandler((req, resp, accessDeniedException) -> {
-                    resp.sendError(SC_FORBIDDEN, "You don't have authorities.");
-                }))
+                .authenticationEntryPoint((req, resp, exc) -> resp.sendError(
+                    SC_UNAUTHORIZED, "Authorize first."))
+                .accessDeniedHandler((req, resp, exc) -> resp.sendError(
+                    SC_FORBIDDEN, "You don't have authorities.")))
             .authorizeHttpRequests(req -> req
                 .requestMatchers("/static/css/**", "/static/img/**").permitAll()
-                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                     "/v2/api-docs/**",
@@ -181,7 +182,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,
                     "/user/get-all-authorities",
                     "/user/get-positions-authorities",
-                    "/user/get-employee-login-positions")
+                    "/user/get-employee-login-positions",
+                    "/user/isOnline/{userId}/")
                 .hasAnyRole(ADMIN, UBS_EMPLOYEE, MODERATOR, EMPLOYEE)
                 .requestMatchers(HttpMethod.PATCH,
                     "/user/shopping-list-items/{userShoppingListItemId}",
@@ -212,12 +214,12 @@ public class SecurityConfig {
                     "/user/update/role")
                 .hasAnyRole(ADMIN)
                 .requestMatchers(HttpMethod.POST, "/management/login")
-                // .not().fullyAuthenticated()
                 .rememberMe()
                 .requestMatchers(HttpMethod.GET, "/management/login")
                 .permitAll()
                 .requestMatchers("/css/**", "/img/**")
                 .permitAll()
+                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/user/user-rating")
                 .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE, UBS_EMPLOYEE, USER)
                 .anyRequest().hasAnyRole(ADMIN));

@@ -32,6 +32,12 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>greencity</groupId>
+            <artifactId>core</artifactId>
+            <version>${project.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
             <version>${modelmapper.version}</version>
@@ -130,6 +136,11 @@
             <artifactId>awaitility</artifactId>
             <version>3.1.6</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
