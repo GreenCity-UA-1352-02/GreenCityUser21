@@ -21,6 +21,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -81,8 +82,8 @@ public class SecurityConfig {
             config.setAllowedMethods(
                 Arrays.asList("GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"));
             config.setAllowedHeaders(
-                Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Headers",
-                    "X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));
+                    Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Headers",
+                        "X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));
             config.setAllowCredentials(true);
             config.setAllowedHeaders(Collections.singletonList("*"));
             config.setMaxAge(3600L);
@@ -223,6 +224,18 @@ public class SecurityConfig {
                 .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE, UBS_EMPLOYEE, USER)
                 .anyRequest().hasAnyRole(ADMIN));
         return http.build();
+    }
+
+    /**
+     * Custom AuthenticationEntryPoint bean.
+     *
+     * @return AuthenticationEntryPoint
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (req, resp, authException) -> {
+            resp.sendError(SC_UNAUTHORIZED, "Authorize first.");
+        };
     }
 
     /**
