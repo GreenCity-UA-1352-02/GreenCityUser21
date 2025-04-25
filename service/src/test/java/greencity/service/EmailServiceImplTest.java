@@ -28,7 +28,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -62,7 +62,8 @@ class EmailServiceImplTest {
         String authorFirstName = "test author first name";
         String placeName = "test place name";
         String placeStatus = "test place status";
-        String authorEmail = "test author email";
+        String authorEmail = "test@gmail.com";
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendChangePlaceStatusEmail(authorFirstName, placeName, placeStatus, authorEmail);
         verify(javaMailSender).createMimeMessage();
     }
@@ -76,6 +77,7 @@ class EmailServiceImplTest {
             PlaceNotificationDto.builder().name("PlaceName2").category(testCategory).build();
         Map<CategoryDto, List<PlaceNotificationDto>> categoriesWithPlacesTest = new HashMap<>();
         categoriesWithPlacesTest.put(testCategory, Arrays.asList(testPlace1, testPlace2));
+        when(userRepo.findByEmail(anyString())).thenReturn(Optional.of(new User()));
         service.sendAddedNewPlacesReportEmail(
             Collections.singletonList(placeAuthorDto), categoriesWithPlacesTest, "DAILY");
         verify(javaMailSender).createMimeMessage();
@@ -85,8 +87,11 @@ class EmailServiceImplTest {
     void sendCreatedNewsForAuthorTest() {
         EcoNewsForSendEmailDto dto = new EcoNewsForSendEmailDto();
         PlaceAuthorDto placeAuthorDto = new PlaceAuthorDto();
+        placeAuthorDto.setId(1L);
         placeAuthorDto.setEmail("test@gmail.com");
         dto.setAuthor(placeAuthorDto);
+        when(userRepo.findById(anyLong())).thenReturn(Optional.of(new User()));
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendCreatedNewsForAuthor(dto);
         verify(javaMailSender).createMimeMessage();
     }
@@ -96,6 +101,7 @@ class EmailServiceImplTest {
         List<NewsSubscriberResponseDto> newsSubscriberResponseDtos =
             Collections.singletonList(new NewsSubscriberResponseDto("test@gmail.com", "someUnsubscribeToken"));
         AddEcoNewsDtoResponse addEcoNewsDtoResponse = ModelUtils.getAddEcoNewsDtoResponse();
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendNewNewsForSubscriber(newsSubscriberResponseDtos, addEcoNewsDtoResponse);
         verify(javaMailSender).createMimeMessage();
     }
@@ -105,6 +111,7 @@ class EmailServiceImplTest {
         "1, Test, test@gmail.com, token, ua",
         "1, Test, test@gmail.com, token, en"})
     void sendVerificationEmail(Long id, String name, String email, String token, String language) {
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendVerificationEmail(id, name, email, token, language, false);
         verify(javaMailSender).createMimeMessage();
     }
@@ -117,6 +124,7 @@ class EmailServiceImplTest {
 
     @Test
     void sendApprovalEmail() {
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendApprovalEmail(1L, "userName", "test@gmail.com", "someToken");
         verify(javaMailSender).createMimeMessage();
     }
@@ -126,6 +134,7 @@ class EmailServiceImplTest {
         "1, Test, test@gmail.com, token, ua, false",
         "1, Test, test@gmail.com, token, en, false"})
     void sendRestoreEmail(Long id, String name, String email, String token, String language, Boolean isUbs) {
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendRestoreEmail(id, name, email, token, language, isUbs);
         verify(javaMailSender).createMimeMessage();
     }
@@ -138,7 +147,8 @@ class EmailServiceImplTest {
 
     @Test
     void sendHabitNotification() {
-        service.sendHabitNotification("userName", "userEmail");
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
+        service.sendHabitNotification("userName", "test@gmail.com");
         verify(javaMailSender).createMimeMessage();
     }
 
@@ -148,9 +158,10 @@ class EmailServiceImplTest {
         UserDeactivationReasonDto test1 = UserDeactivationReasonDto.builder()
             .deactivationReasons(test)
             .lang("en")
-            .email("test@ukr.net")
+            .email("test@gmail.com")
             .name("test")
             .build();
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendReasonOfDeactivation(test1);
         verify(javaMailSender).createMimeMessage();
     }
@@ -160,9 +171,10 @@ class EmailServiceImplTest {
         List<String> test = List.of("test", "test");
         UserActivationDto test1 = UserActivationDto.builder()
             .lang("en")
-            .email("test@ukr.net")
+            .email("test@gmail.com")
             .name("test")
             .build();
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendMessageOfActivation(test1);
         verify(javaMailSender).createMimeMessage();
     }
@@ -170,6 +182,7 @@ class EmailServiceImplTest {
     @Test
     void sendUserViolationEmailTest() {
         UserViolationMailDto dto = ModelUtils.getUserViolationMailDto();
+        when(userRepo.findByEmail(anyString())).thenReturn(Optional.of(new User()));
         service.sendUserViolationEmail(dto);
         verify(javaMailSender).createMimeMessage();
     }
@@ -180,6 +193,7 @@ class EmailServiceImplTest {
         String lang = "en";
         String userName = "Helgi";
         boolean isUbs = false;
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendSuccessRestorePasswordByEmail(email, lang, userName, isUbs);
 
         verify(javaMailSender).createMimeMessage();
@@ -189,7 +203,7 @@ class EmailServiceImplTest {
     void sendNotificationByEmail() {
         User user = User.builder().build();
         NotificationDto dto = NotificationDto.builder().title("title").body("body").build();
-        when(userRepo.findByEmail(anyString())).thenReturn(Optional.of(user));
+        when(userRepo.findByEmail("test@gmail.com")).thenReturn(Optional.of(new User()));
         service.sendNotificationByEmail(dto, "test@gmail.com");
         verify(javaMailSender).createMimeMessage();
     }

@@ -10,6 +10,7 @@ import greencity.message.SendChangePlaceStatusEmailMessage;
 import greencity.message.SendHabitNotification;
 import greencity.message.SendReportEmailMessage;
 import greencity.service.EmailService;
+import io.opencensus.trace.Link;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,7 @@ class EmailControllerTest {
                 "\"creationDate\":\"2021-02-05T15:10:22.434Z\"," +
                 "\"imagePath\":\"string\"," +
                 "\"source\":\"string\"," +
-                "\"author\":{\"id\":0,\"name\":\"string\",\"email\":\"test.email@gmail.com\" }," +
+                "\"author\":{\"id\":1,\"name\":\"String\",\"email\":\"test.email@gmail.com\" }," +
                 "\"title\":\"string\"," +
                 "\"text\":\"string\"}";
 
@@ -64,6 +65,23 @@ class EmailControllerTest {
         EcoNewsForSendEmailDto message = objectMapper.readValue(content, EcoNewsForSendEmailDto.class);
 
         verify(emailService).sendCreatedNewsForAuthor(message);
+    }
+
+    @Test
+    void addEcoNews_withInvalidEmail_shouldReturnBadRequest() throws Exception {
+        String content =
+            "{\"unsubscribeToken\":\"string\"," +
+                "\"creationDate\":\"2025-04-18T15:10:22.434Z\"," +
+                "\"imagePath\":\"string\"," +
+                "\"source\":\"string\"," +
+                "\"author\":{\"id\":0,\"name\":\"string\",\"email\":\"invalid-email\"}," +
+                "\"title\":\"string\"," +
+                "\"text\":\"string\"}";
+
+        mockMvc.perform(post(LINK + "/addEcoNews")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -94,7 +112,7 @@ class EmailControllerTest {
     @Test
     void changePlaceStatus() throws Exception {
         String content = "{" +
-            "\"authorEmail\":\"string\"," +
+            "\"authorEmail\":\"string@gmail.com\"," +
             "\"authorFirstName\":\"string\"," +
             "\"placeName\":\"string\"," +
             "\"placeStatus\":\"string\"" +
@@ -111,10 +129,26 @@ class EmailControllerTest {
     }
 
     @Test
+    void changePlaceStatus_InvalidEmail_ReturnBadRequest() throws Exception {
+        String content = "{" +
+            "\"authorEmail\":\"stringgmail.com\"," +
+            "\"authorFirstName\":\"string\"," +
+            "\"placeName\":\"string\"," +
+            "\"placeStatus\":\"string\"" +
+            "}";
+
+        mockMvc.perform(post(LINK + "/changePlaceStatus")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
+            .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
     void sendHabitNotification() throws Exception {
         String content = "{" +
-            "\"email\":\"string\"," +
-            "\"name\":\"string\"" +
+            "\"email\":\"test@gmail.com\"," +
+            "\"name\":\"String\"" +
             "}";
 
         mockPerform(content, "/sendHabitNotification");
@@ -123,6 +157,19 @@ class EmailControllerTest {
             new ObjectMapper().readValue(content, SendHabitNotification.class);
 
         verify(emailService).sendHabitNotification(notification.getName(), notification.getEmail());
+    }
+
+    @Test
+    void sendHabitNotification_InvalidEmail_RetundBadRequest() throws Exception {
+        String content = "{" +
+            "\"email\":\"testgmail.com\"," +
+            "\"name\":\"string\"" +
+            "}";
+
+        mockMvc.perform(post(LINK + "/sendHabitNotification")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
+            .andExpect(status().isBadRequest());
     }
 
     private void mockPerform(String content, String subLink) throws Exception {
@@ -137,6 +184,7 @@ class EmailControllerTest {
         String content = "{" +
             "\"name\":\"String\"," +
             "\"email\":\"String@gmail.com\"," +
+            "\"language\":\"en\"," +
             "\"violationDescription\":\"string string\"" +
             "}";
 
@@ -144,6 +192,21 @@ class EmailControllerTest {
 
         UserViolationMailDto userViolationMailDto = new ObjectMapper().readValue(content, UserViolationMailDto.class);
         verify(emailService).sendUserViolationEmail(userViolationMailDto);
+    }
+
+    @Test
+    void sendUserViolationEmail_InvalidEmail_ReturnBadRequest() throws Exception {
+        String content = "{" +
+            "\"name\":\"String\"," +
+            "\"email\":\"Stringgmail.com\"," +
+            "\"language\":\"en\"," +
+            "\"violationDescription\":\"string string\"" +
+            "}";
+
+        mockMvc.perform(post(LINK + "/sendUserViolation")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(content))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
