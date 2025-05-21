@@ -43,8 +43,8 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
 @EnableGlobalAuthentication
+@EnableMethodSecurity
 public class SecurityConfig {
     private final JwtTool jwtTool;
     private static final String USER_LINK = "/user";
