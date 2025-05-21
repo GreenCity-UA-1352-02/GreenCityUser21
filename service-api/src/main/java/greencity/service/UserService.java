@@ -23,10 +23,10 @@ import java.util.Optional;
  */
 public interface UserService {
     /**
-     * Find all {@link User}'s with {@link EmailNotification} type.
+     * Find all {@link UserVO}'s with {@link EmailNotification} type.
      *
      * @param emailNotification - type of {@link EmailNotification}
-     * @return list of {@link User}'s
+     * @return list of {@link UserVO}'s
      */
     List<UserVO> findAllByEmailNotification(EmailNotification emailNotification);
 
@@ -328,6 +328,8 @@ public interface UserService {
      * @return {@link PageableAdvancedDto} of {@link UserManagementDto} instances.
      */
     PageableAdvancedDto<UserManagementDto> searchBy(Pageable paging, String query);
+
+    boolean existsByEmail(String email);
 
     /**
      * Method for getting all Users.

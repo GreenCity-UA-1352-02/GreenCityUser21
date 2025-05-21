@@ -70,6 +70,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO save(UserVO userVO) {
         User user = modelMapper.map(userVO, User.class);
+        user.setLanguage(modelMapper.map(userVO.getLanguageVO(), Language.class));
         return modelMapper.map(userRepo.save(user), UserVO.class);
     }
 
@@ -79,7 +80,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO findById(Long id) {
         User user = userRepo.findById(id)
-            .orElseThrow(() -> new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
+            .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + id));
         return modelMapper.map(user, UserVO.class);
     }
 
@@ -162,7 +163,18 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO findByEmail(String email) {
         Optional<User> optionalUser = userRepo.findByEmail(email);
-        return optionalUser.isEmpty() ? null : modelMapper.map(optionalUser.get(), UserVO.class);
+        return optionalUser.map(user -> modelMapper.map(user, UserVO.class))
+            .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean existsByEmail(String email) {
+        Optional<User> optionalUser = userRepo.findByEmail(email);
+        System.out.println("existsByEmail: " + optionalUser.isPresent());
+        return optionalUser.isPresent();
     }
 
     /**
@@ -179,7 +191,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public PageableAdvancedDto<UserManagementVO> search(Pageable pageable,
-        UserManagementViewDto userManagementViewDto) {
+                                                        UserManagementViewDto userManagementViewDto) {
         Page<User> found = userRepo.findAll(buildSpecification(userManagementViewDto), pageable);
         return buildPageableAdvanceDtoFromPage(found);
     }
@@ -316,6 +328,12 @@ public class UserServiceImpl implements UserService {
         UserVO userVO = findById(id);
         userVO.setUserStatus(userStatus);
         User map = modelMapper.map(userVO, User.class);
+        User optionalUser = userRepo.findById(userVO.getId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID));
+        map.setLanguage(languageRepo.findById(userVO.getLanguageVO().getId())
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.LANGUAGE_NOT_FOUND_BY_ID)));
+        map.setFirstName(optionalUser.getFirstName());
+        map.setUuid(optionalUser.getUuid());
         return modelMapper.map(userRepo.save(map), UserStatusDto.class);
     }
 
@@ -473,7 +491,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UserVO updateUserProfilePicture(MultipartFile image, String email,
-        String base64) {
+                                           String base64) {
         User user = userRepo
             .findByEmail(email)
             .orElseThrow(() -> new WrongEmailException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
@@ -568,7 +586,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean checkIfTheUserIsOnline(Long userId) {
         if (userRepo.findById(userId).isEmpty()) {
-            throw new WrongIdException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId);
+            throw new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId);
         }
         Optional<Timestamp> lastActivityTime = userRepo.findLastActivityTimeById(userId);
         if (lastActivityTime.isPresent()) {

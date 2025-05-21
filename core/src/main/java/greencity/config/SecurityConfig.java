@@ -4,6 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import greencity.security.filters.AccessTokenAuthenticationFilter;
+import greencity.security.handlers.JsonAuthSuccessHandler;
 import greencity.security.jwt.JwtTool;
 import greencity.security.providers.JwtAuthenticationProvider;
 import greencity.service.UserService;
@@ -15,16 +16,20 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+
 import java.util.Arrays;
 import java.util.Collections;
+
 import static greencity.constant.AppConstant.*;
 import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
@@ -39,22 +44,22 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @Configuration
 @EnableWebSecurity
 @EnableGlobalAuthentication
+@EnableMethodSecurity
 public class SecurityConfig {
     private final JwtTool jwtTool;
-    private final UserService userService;
     private static final String USER_LINK = "/user";
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final UserService userService;
 
     /**
      * Constructor.
      */
 
     @Autowired
-    public SecurityConfig(JwtTool jwtTool, UserService userService,
-                          AuthenticationConfiguration authenticationConfiguration) {
+    public SecurityConfig(JwtTool jwtTool, AuthenticationConfiguration authenticationConfiguration, UserService userService) {
         this.jwtTool = jwtTool;
-        this.userService = userService;
         this.authenticationConfiguration = authenticationConfiguration;
+        this.userService = userService;
     }
 
     /**
@@ -71,21 +76,21 @@ public class SecurityConfig {
      * @param http {@link HttpSecurity}
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JsonAuthSuccessHandler successHandler) throws Exception {
         http.cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
-            CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
-            config.setAllowedOrigins(Collections.singletonList("http://localhost:4205"));
-            config.setAllowedMethods(
-                    Arrays.asList("GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"));
-            config.setAllowedHeaders(
-                    Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Headers",
-                            "X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));
-            config.setAllowCredentials(true);
-            config.setAllowedHeaders(Collections.singletonList("*"));
-            config.setMaxAge(3600L);
-            return config;
-        }))
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                    config.setAllowedOrigins(Collections.singletonList("http://localhost:4205"));
+                    config.setAllowedMethods(
+                            Arrays.asList("GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"));
+                    config.setAllowedHeaders(
+                            Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Headers",
+                                    "X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));
+                    config.setAllowCredentials(true);
+                    config.setAllowedHeaders(Collections.singletonList("*"));
+                    config.setMaxAge(3600L);
+                    return config;
+                }))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
                 .addFilterBefore(
@@ -97,6 +102,7 @@ public class SecurityConfig {
                         .accessDeniedHandler((req, resp, exc) -> resp.sendError(
                                 SC_FORBIDDEN, "You don't have authorities.")))
                 .authorizeHttpRequests(req -> req
+                        .requestMatchers("/oauth2/authorization/google", "/login/oauth2/code/google").permitAll()
                         .requestMatchers("/static/css/**", "/static/img/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
@@ -104,7 +110,8 @@ public class SecurityConfig {
                                 "/v2/api-docs/**",
                                 "/v3/api-docs/**",
                                 "/swagger.json",
-                                "/swagger-ui.html")
+                                "/swagger-ui.html",
+                                "/error", "/googleAuth/token", "/googleAuth/userinfo", "/googleAuth/google")
                         .permitAll()
                         .requestMatchers(
                                 "/swagger-resources/**",
@@ -223,8 +230,24 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers(HttpMethod.PUT, "/user/user-rating")
                         .hasAnyRole(ADMIN, MODERATOR, EMPLOYEE, UBS_EMPLOYEE, USER)
-                        .anyRequest().hasAnyRole(ADMIN));
+                        .anyRequest().hasAnyRole(ADMIN))
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/oauth2/authorization/google")
+                        .successHandler(successHandler)
+                );
         return http.build();
+    }
+
+    /**
+     * Custom AuthenticationEntryPoint bean.
+     *
+     * @return AuthenticationEntryPoint
+     */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return (req, resp, authException) -> {
+            resp.sendError(SC_UNAUTHORIZED, "Authorize first.");
+        };
     }
 
     /**
