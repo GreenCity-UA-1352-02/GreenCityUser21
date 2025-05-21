@@ -13,10 +13,24 @@
         <jjwt.version>0.12.3</jjwt.version>
         <passay.version>1.6.0</passay.version>
         <apache.commons.version>4.4</apache.commons.version>
+        <telegram.version>6.8.0</telegram.version>
+        <kafka.version>3.0.1</kafka.version>
     </properties>
 
     <artifactId>service-api</artifactId>
     <dependencies>
+        <!-- Kafka -->
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <!-- Telegram Bot -->
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots</artifactId>
+            <version>${telegram.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -153,6 +167,4 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
-
-
 </project>
