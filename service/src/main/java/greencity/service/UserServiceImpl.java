@@ -70,6 +70,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserVO save(UserVO userVO) {
         User user = modelMapper.map(userVO, User.class);
+        user.setLanguage(modelMapper.map(userVO.getLanguageVO(), Language.class));
         return modelMapper.map(userRepo.save(user), UserVO.class);
     }
 
@@ -164,6 +165,16 @@ public class UserServiceImpl implements UserService {
         Optional<User> optionalUser = userRepo.findByEmail(email);
         return optionalUser.map(user -> modelMapper.map(user, UserVO.class))
             .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND_BY_EMAIL + email));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean existsByEmail(String email) {
+        Optional<User> optionalUser = userRepo.findByEmail(email);
+        System.out.println("existsByEmail: " + optionalUser.isPresent());
+        return optionalUser.isPresent();
     }
 
     /**
